@@ -1,0 +1,131 @@
+{% extends 'base.html' %}
+
+{% block contenido %}
+
+<div class="pagina-agendar">
+
+    <div class="card-agendar">
+
+        <h1 class="titulo-agendar">
+            Reagendar cita
+        </h1>
+
+        <form method="POST">
+
+            <div class="mb-3">
+                <label class="form-label">Cliente</label>
+
+                <input
+                    type="text"
+                    class="form-control input-premium"
+                    value="{{ cita.cliente }}"
+                    disabled
+                >
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label">Servicio</label>
+
+                <input
+                    type="text"
+                    class="form-control input-premium"
+                    value="{{ cita.servicio }}"
+                    disabled
+                >
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label">Nueva fecha</label>
+
+                <input
+                    type="date"
+                    name="fecha"
+                    id="fecha"
+                    class="form-control input-premium"
+                    value="{{ cita.fecha }}"
+                    required
+                >
+            </div>
+
+            <div class="mb-4">
+                <label class="form-label">Nueva hora disponible</label>
+
+                <select
+                    name="hora"
+                    id="hora"
+                    class="form-select input-premium"
+                    required
+                >
+                    <option value="">
+                        Selecciona una fecha
+                    </option>
+                </select>
+            </div>
+
+            <button type="submit" class="btn-confirmar">
+                Guardar y avisar por WhatsApp
+            </button>
+
+        </form>
+
+    </div>
+
+</div>
+
+<script>
+    const fechaInput = document.getElementById("fecha");
+    const horaSelect = document.getElementById("hora");
+    const citaId = "{{ cita.id }}";
+    const horaActual = "{{ cita.hora }}";
+
+    function cargarHorarios() {
+        const fecha = fechaInput.value;
+
+        horaSelect.innerHTML = `
+            <option value="">
+                Cargando horarios...
+            </option>
+        `;
+
+        fetch(`/horarios-disponibles?fecha=${fecha}&excluir_id=${citaId}`)
+            .then(response => response.json())
+            .then(horarios => {
+
+                horaSelect.innerHTML = "";
+
+                if (horarios.length === 0) {
+                    horaSelect.innerHTML = `
+                        <option value="">
+                            No hay horarios disponibles
+                        </option>
+                    `;
+                    return;
+                }
+
+                horaSelect.innerHTML = `
+                    <option value="">
+                        Selecciona una hora
+                    </option>
+                `;
+
+                horarios.forEach(hora => {
+                    const option = document.createElement("option");
+                    option.value = hora;
+                    option.textContent = hora;
+
+                    if (hora === horaActual) {
+                        option.selected = true;
+                    }
+
+                    horaSelect.appendChild(option);
+                });
+
+            });
+    }
+
+    fechaInput.addEventListener("change", cargarHorarios);
+
+    cargarHorarios();
+</script>
+
+{% endblock %}

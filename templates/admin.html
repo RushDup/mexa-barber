@@ -1,0 +1,124 @@
+{% extends 'base.html' %}
+
+{% block contenido %}
+
+<div class="admin-container">
+
+    <div class="top-bar">
+
+        <h1>Panel de citas</h1>
+
+        <div class="top-buttons">
+            <a href="/agenda" class="btn-gold">Agenda</a>
+            <a href="/logout" class="btn-danger">Cerrar sesión</a>
+        </div>
+
+    </div>
+
+    <div class="stats-grid">
+
+        <div class="stat-card">
+            <h2>{{ citas_hoy }}</h2>
+            <p>Citas hoy</p>
+        </div>
+
+        <div class="stat-card">
+            <h2>{{ pendientes }}</h2>
+            <p>Pendientes</p>
+        </div>
+
+        <div class="stat-card">
+            <h2>{{ aceptadas }}</h2>
+            <p>Aceptadas</p>
+        </div>
+
+        <div class="stat-card">
+            <h2>{{ canceladas }}</h2>
+            <p>Canceladas</p>
+        </div>
+
+    </div>
+
+    <div class="tabla-card">
+
+        <table class="tabla-citas">
+
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Cliente</th>
+                    <th>Teléfono</th>
+                    <th>Servicio</th>
+                    <th>Fecha</th>
+                    <th>Hora</th>
+                    <th>Estado</th>
+                    <th>Acciones</th>
+                </tr>
+            </thead>
+
+            <tbody>
+
+                {% for cita in citas %}
+
+                <tr>
+                    <td>{{ cita.id }}</td>
+                    <td>{{ cita.cliente }}</td>
+                    <td>{{ cita.telefono }}</td>
+                    <td>{{ cita.servicio }}</td>
+                    <td>{{ cita.fecha }}</td>
+                    <td>{{ cita.hora }}</td>
+
+                    <td>
+                        {% if cita.estado == "pendiente" %}
+                            <span class="estado pendiente">pendiente</span>
+                        {% elif cita.estado == "aceptada" %}
+                            <span class="estado aceptada">aceptada</span>
+                        {% elif cita.estado == "cancelada" %}
+                            <span class="estado cancelada">cancelada</span>
+                        {% endif %}
+                    </td>
+
+                    <td>
+                        {% if cita.estado == "pendiente" %}
+
+                            <a href="/aceptar/{{ cita.id }}" class="btn-aceptar">
+                                Aceptar
+                            </a>
+
+                            <a href="/reagendar/{{ cita.id }}" class="btn-gold">
+                                Reagendar
+                            </a>
+
+                            <a href="/cancelar/{{ cita.id }}" class="btn-cancelar">
+                                Cancelar
+                            </a>
+
+                        {% elif cita.estado == "aceptada" %}
+
+                            <a href="/reagendar/{{ cita.id }}" class="btn-gold">
+                                Reagendar
+                            </a>
+
+                            <a href="/cancelar/{{ cita.id }}" class="btn-cancelar">
+                                Cancelar
+                            </a>
+
+                        {% else %}
+
+                            <span>Sin acciones</span>
+
+                        {% endif %}
+                    </td>
+                </tr>
+
+                {% endfor %}
+
+            </tbody>
+
+        </table>
+
+    </div>
+
+</div>
+
+{% endblock %}

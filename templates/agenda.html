@@ -1,0 +1,88 @@
+{% extends 'base.html' %}
+
+{% block contenido %}
+
+<div class="agenda-page">
+
+    <div class="agenda-header">
+
+        <h1>
+            Agenda del día
+        </h1>
+
+        <a href="/admin" class="btn-gold">
+            Volver al panel
+        </a>
+
+    </div>
+
+    <div class="agenda-grid">
+
+        {% for hora in [
+            "10:00","10:30",
+            "11:00","11:30",
+            "12:00","12:30",
+            "13:00","13:30",
+            "14:00","14:30",
+            "15:00","15:30",
+            "16:00","16:30",
+            "17:00","17:30",
+            "18:00","18:30",
+            "19:00"
+        ] %}
+
+            <div class="bloque-hora">
+
+                <div class="hora-label">
+                    {{ hora }}
+                </div>
+
+                <div class="contenido-hora">
+
+                    {% set encontrada = false %}
+
+                    {% for cita in citas %}
+
+                        {% if cita.hora == hora %}
+
+                            {% set encontrada = true %}
+
+                            <div class="cita-card">
+
+                                <h3>
+                                    {{ cita.cliente }}
+                                </h3>
+
+                                <p>
+                                    {{ cita.servicio }}
+                                </p>
+
+                                <span>
+                                    {{ cita.fecha }}
+                                </span>
+
+                            </div>
+
+                        {% endif %}
+
+                    {% endfor %}
+
+                    {% if not encontrada %}
+
+                        <div class="libre">
+                            Disponible
+                        </div>
+
+                    {% endif %}
+
+                </div>
+
+            </div>
+
+        {% endfor %}
+
+    </div>
+
+</div>
+
+{% endblock %}

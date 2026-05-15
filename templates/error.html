@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Error</title>
+
+    <style>
+
+        *{
+            margin:0;
+            padding:0;
+            box-sizing:border-box;
+            font-family:Arial;
+        }
+
+        body{
+            background:#000;
+            color:white;
+            height:100vh;
+            display:flex;
+            justify-content:center;
+            align-items:center;
+        }
+
+        .card{
+            background:#111;
+            width:420px;
+            padding:40px;
+            border-radius:20px;
+            text-align:center;
+            box-shadow:0 0 30px rgba(0,0,0,.5);
+        }
+
+        .icon{
+            font-size:70px;
+            margin-bottom:20px;
+        }
+
+        h1{
+            color:#ff4d4d;
+            margin-bottom:15px;
+        }
+
+        p{
+            color:#bbb;
+            margin-bottom:30px;
+            line-height:1.6;
+        }
+
+        a{
+            display:inline-block;
+            background:#d4a85f;
+            color:black;
+            padding:14px 30px;
+            text-decoration:none;
+            border-radius:10px;
+            font-weight:bold;
+            transition:.3s;
+        }
+
+        a:hover{
+            opacity:.8;
+        }
+
+    </style>
+
+</head>
+<body>
+
+    <div class="card">
+
+        <div class="icon">
+            ❌
+        </div>
+
+        <h1>{{ titulo }}</h1>
+
+        <p>{{ mensaje }}</p>
+
+        <a href="/agendar">
+            Volver
+        </a>
+
+    </div>
+
+</body>
+</html>

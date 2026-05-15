@@ -1,0 +1,135 @@
+{% extends 'base.html' %}
+
+{% block contenido %}
+
+<div class="pagina-agendar">
+
+    <div class="card-agendar">
+
+        <h1 class="titulo-agendar">
+            Agendar cita
+        </h1>
+
+        <form method="POST">
+
+            <div class="mb-3">
+                <label class="form-label">Nombre</label>
+
+                <input
+                    type="text"
+                    name="cliente"
+                    class="form-control input-premium"
+                    placeholder="Tu nombre"
+                    required
+                >
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label">Teléfono</label>
+
+                <input
+                    type="text"
+                    name="telefono"
+                    class="form-control input-premium"
+                    placeholder="961..."
+                    required
+                >
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label">Servicio</label>
+
+                <select
+                    name="servicio"
+                    class="form-select input-premium"
+                    required
+                >
+                    <option value="">Selecciona un servicio</option>
+                    <option value="Corte">Corte</option>
+                    <option value="Barba">Barba</option>
+                    <option value="Cejas">Cejas</option>
+                    <option value="Grecas">Grecas</option>
+                </select>
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label">Fecha</label>
+
+                <input
+                    type="date"
+                    name="fecha"
+                    id="fecha"
+                    class="form-control input-premium"
+                    required
+                >
+            </div>
+
+            <div class="mb-4">
+                <label class="form-label">Hora disponible</label>
+
+                <select
+                    name="hora"
+                    id="hora"
+                    class="form-select input-premium"
+                    required
+                >
+                    <option value="">Primero selecciona una fecha</option>
+                </select>
+            </div>
+
+            <button type="submit" class="btn-confirmar">
+                Confirmar cita
+            </button>
+
+        </form>
+
+    </div>
+
+</div>
+
+<script>
+    const fechaInput = document.getElementById("fecha");
+    const horaSelect = document.getElementById("hora");
+
+    fechaInput.addEventListener("change", function () {
+        const fecha = fechaInput.value;
+
+        horaSelect.innerHTML = `
+            <option value="">
+                Cargando horarios...
+            </option>
+        `;
+
+        fetch(`/horarios-disponibles?fecha=${fecha}`)
+            .then(response => response.json())
+            .then(horarios => {
+
+                horaSelect.innerHTML = "";
+
+                if (horarios.length === 0) {
+                    horaSelect.innerHTML = `
+                        <option value="">
+                            No hay horarios disponibles
+                        </option>
+                    `;
+                    return;
+                }
+
+                horaSelect.innerHTML = `
+                    <option value="">
+                        Selecciona una hora
+                    </option>
+                `;
+
+                horarios.forEach(hora => {
+                    const option = document.createElement("option");
+                    option.value = hora;
+                    option.textContent = hora;
+                    horaSelect.appendChild(option);
+                });
+
+            });
+    });
+</script>
+
+{% endblock %}
