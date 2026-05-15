@@ -1,9 +1,11 @@
 from flask import Flask, render_template, request, redirect, url_for, session, jsonify
 from flask_session import Session
-import sqlite3
+import psycopg2
+from psycopg2.extras import RealDictCursor
 from functools import wraps
 from datetime import datetime
 from urllib.parse import quote
+import os
 
 app = Flask(__name__)
 
@@ -28,9 +30,18 @@ HORARIOS = [
 
 
 def conectar():
-    conn = sqlite3.connect("database.db")
-    conn.row_factory = sqlite3.Row
-    return conn
+    database_url = os.environ.get("DATABASE_URL")
+
+    if database_url:
+        return psycopg2.connect(database_url)
+
+    return psycopg2.connect(
+        host="dpg-d83m88pkh4rs739s0t50-a.oregon-postgres.render.com",
+        database="mexa_barber_db",
+        user="mexa_barber_db_user",
+        password="v0q8kDRCPW9bkdoMUqIklNlvkrlOKkBl",
+        port=5432
+    )
 
 
 def init_db():
@@ -39,21 +50,19 @@ def init_db():
 
     cursor.execute("""
         CREATE TABLE IF NOT EXISTS citas (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            cliente TEXT,
-            telefono TEXT,
-            servicio TEXT,
-            fecha TEXT,
-            hora TEXT,
+            id SERIAL PRIMARY KEY,
+            cliente TEXT NOT NULL,
+            telefono TEXT NOT NULL,
+            servicio TEXT NOT NULL,
+            fecha TEXT NOT NULL,
+            hora TEXT NOT NULL,
             estado TEXT DEFAULT 'pendiente'
         )
     """)
 
     conn.commit()
+    cursor.close()
     conn.close()
-
-
-init_db()
 
 
 def login_required(f):
@@ -84,29 +93,28 @@ def horarios_disponibles():
         return jsonify([])
 
     conn = conectar()
-    cursor = conn.cursor()
+    cursor = conn.cursor(cursor_factory=RealDictCursor)
 
     if excluir_id:
         cursor.execute("""
             SELECT hora FROM citas
-            WHERE fecha = ?
+            WHERE fecha = %s
             AND estado != 'cancelada'
-            AND id != ?
+            AND id != %s
         """, (fecha, excluir_id))
     else:
         cursor.execute("""
             SELECT hora FROM citas
-            WHERE fecha = ?
+            WHERE fecha = %s
             AND estado != 'cancelada'
         """, (fecha,))
 
     ocupadas = [fila["hora"] for fila in cursor.fetchall()]
+
+    cursor.close()
     conn.close()
 
-    disponibles = [
-        hora for hora in HORARIOS
-        if hora not in ocupadas
-    ]
+    disponibles = [hora for hora in HORARIOS if hora not in ocupadas]
 
     return jsonify(disponibles)
 
@@ -130,19 +138,21 @@ def agendar():
             )
 
         conn = conectar()
-        cursor = conn.cursor()
+        cursor = conn.cursor(cursor_factory=RealDictCursor)
 
         cursor.execute("""
             SELECT * FROM citas
-            WHERE fecha = ?
-            AND hora = ?
+            WHERE fecha = %s
+            AND hora = %s
             AND estado != 'cancelada'
         """, (fecha, hora))
 
         cita_existente = cursor.fetchone()
 
         if cita_existente:
+            cursor.close()
             conn.close()
+
             return render_template(
                 "error.html",
                 titulo="Hora ocupada",
@@ -158,7 +168,7 @@ def agendar():
                 hora,
                 estado
             )
-            VALUES (?, ?, ?, ?, ?, ?)
+            VALUES (%s, %s, %s, %s, %s, %s)
         """, (
             cliente,
             telefono,
@@ -169,6 +179,7 @@ def agendar():
         ))
 
         conn.commit()
+        cursor.close()
         conn.close()
 
         return render_template("confirmacion.html")
@@ -203,7 +214,7 @@ def logout():
 @login_required
 def admin():
     conn = conectar()
-    cursor = conn.cursor()
+    cursor = conn.cursor(cursor_factory=RealDictCursor)
 
     cursor.execute("""
         SELECT * FROM citas
@@ -214,18 +225,31 @@ def admin():
 
     hoy = datetime.now().strftime("%Y-%m-%d")
 
-    cursor.execute("SELECT COUNT(*) FROM citas WHERE fecha = ?", (hoy,))
-    citas_hoy = cursor.fetchone()[0]
+    cursor.execute("""
+        SELECT COUNT(*) AS total FROM citas
+        WHERE fecha = %s
+    """, (hoy,))
+    citas_hoy = cursor.fetchone()["total"]
 
-    cursor.execute("SELECT COUNT(*) FROM citas WHERE estado = 'pendiente'")
-    pendientes = cursor.fetchone()[0]
+    cursor.execute("""
+        SELECT COUNT(*) AS total FROM citas
+        WHERE estado = 'pendiente'
+    """)
+    pendientes = cursor.fetchone()["total"]
 
-    cursor.execute("SELECT COUNT(*) FROM citas WHERE estado = 'aceptada'")
-    aceptadas = cursor.fetchone()[0]
+    cursor.execute("""
+        SELECT COUNT(*) AS total FROM citas
+        WHERE estado = 'aceptada'
+    """)
+    aceptadas = cursor.fetchone()["total"]
 
-    cursor.execute("SELECT COUNT(*) FROM citas WHERE estado = 'cancelada'")
-    canceladas = cursor.fetchone()[0]
+    cursor.execute("""
+        SELECT COUNT(*) AS total FROM citas
+        WHERE estado = 'cancelada'
+    """)
+    canceladas = cursor.fetchone()["total"]
 
+    cursor.close()
     conn.close()
 
     return render_template(
@@ -242,18 +266,33 @@ def admin():
 @login_required
 def aceptar(id):
     conn = conectar()
-    cursor = conn.cursor()
+    cursor = conn.cursor(cursor_factory=RealDictCursor)
 
-    cursor.execute("SELECT * FROM citas WHERE id = ?", (id,))
+    cursor.execute("""
+        SELECT * FROM citas
+        WHERE id = %s
+    """, (id,))
+
     cita = cursor.fetchone()
+
+    if not cita:
+        cursor.close()
+        conn.close()
+
+        return render_template(
+            "error.html",
+            titulo="Cita no encontrada",
+            mensaje="La cita que intentas aceptar no existe."
+        )
 
     cursor.execute("""
         UPDATE citas
         SET estado = 'aceptada'
-        WHERE id = ?
+        WHERE id = %s
     """, (id,))
 
     conn.commit()
+    cursor.close()
     conn.close()
 
     telefono = cita["telefono"]
@@ -285,10 +324,11 @@ def cancelar(id):
     cursor.execute("""
         UPDATE citas
         SET estado = 'cancelada'
-        WHERE id = ?
+        WHERE id = %s
     """, (id,))
 
     conn.commit()
+    cursor.close()
     conn.close()
 
     return redirect(url_for("admin"))
@@ -298,10 +338,24 @@ def cancelar(id):
 @login_required
 def reagendar(id):
     conn = conectar()
-    cursor = conn.cursor()
+    cursor = conn.cursor(cursor_factory=RealDictCursor)
 
-    cursor.execute("SELECT * FROM citas WHERE id = ?", (id,))
+    cursor.execute("""
+        SELECT * FROM citas
+        WHERE id = %s
+    """, (id,))
+
     cita = cursor.fetchone()
+
+    if not cita:
+        cursor.close()
+        conn.close()
+
+        return render_template(
+            "error.html",
+            titulo="Cita no encontrada",
+            mensaje="La cita que intentas reagendar no existe."
+        )
 
     if request.method == "POST":
         nueva_fecha = request.form["fecha"]
@@ -310,7 +364,9 @@ def reagendar(id):
         fecha_obj = datetime.strptime(nueva_fecha, "%Y-%m-%d")
 
         if fecha_obj.weekday() == 0:
+            cursor.close()
             conn.close()
+
             return render_template(
                 "error.html",
                 titulo="Los lunes no trabajamos",
@@ -319,16 +375,18 @@ def reagendar(id):
 
         cursor.execute("""
             SELECT * FROM citas
-            WHERE fecha = ?
-            AND hora = ?
+            WHERE fecha = %s
+            AND hora = %s
             AND estado != 'cancelada'
-            AND id != ?
+            AND id != %s
         """, (nueva_fecha, nueva_hora, id))
 
         cita_existente = cursor.fetchone()
 
         if cita_existente:
+            cursor.close()
             conn.close()
+
             return render_template(
                 "error.html",
                 titulo="Hora ocupada",
@@ -337,13 +395,14 @@ def reagendar(id):
 
         cursor.execute("""
             UPDATE citas
-            SET fecha = ?,
-                hora = ?,
+            SET fecha = %s,
+                hora = %s,
                 estado = 'aceptada'
-            WHERE id = ?
+            WHERE id = %s
         """, (nueva_fecha, nueva_hora, id))
 
         conn.commit()
+        cursor.close()
         conn.close()
 
         telefono = cita["telefono"]
@@ -365,6 +424,7 @@ Te esperamos 🔥
 
         return redirect(whatsapp_url)
 
+    cursor.close()
     conn.close()
 
     return render_template("reagendar.html", cita=cita)
@@ -380,7 +440,7 @@ def agenda():
 @login_required
 def api_citas():
     conn = conectar()
-    cursor = conn.cursor()
+    cursor = conn.cursor(cursor_factory=RealDictCursor)
 
     cursor.execute("""
         SELECT * FROM citas
@@ -389,6 +449,8 @@ def api_citas():
     """)
 
     citas = cursor.fetchall()
+
+    cursor.close()
     conn.close()
 
     eventos = []
@@ -421,4 +483,5 @@ def api_citas():
 
 
 if __name__ == "__main__":
+    init_db()
     app.run(debug=True)
