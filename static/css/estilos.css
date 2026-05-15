@@ -611,3 +611,54 @@ RESPONSIVE
     }
 
 }
+
+.fecha-agenda-texto{
+    color:#aaa;
+    margin-top:10px;
+    font-size:18px;
+}
+
+.form-fecha-agenda{
+    background:#151515;
+    padding:25px;
+    border-radius:20px;
+    margin-bottom:35px;
+}
+
+.form-fecha-agenda label{
+    color:#d4a85f;
+    font-weight:bold;
+    display:block;
+    margin-bottom:15px;
+}
+
+.fecha-row{
+    display:flex;
+    gap:15px;
+    flex-wrap:wrap;
+}
+
+.input-fecha-agenda{
+    background:#1f1f1f;
+    border:1px solid #333;
+    color:white;
+    padding:12px 15px;
+    border-radius:10px;
+    min-width:250px;
+}
+
+.input-fecha-agenda:focus{
+    outline:none;
+    border-color:#d4a85f;
+}
+
+@media(max-width:768px){
+    .fecha-row{
+        flex-direction:column;
+    }
+
+    .input-fecha-agenda,
+    .fecha-row .btn-gold{
+        width:100%;
+    }
+}

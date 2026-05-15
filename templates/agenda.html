@@ -6,9 +6,15 @@
 
     <div class="agenda-header">
 
-        <h1>
-            Agenda del día
-        </h1>
+        <div>
+            <h1>
+                Agenda del día
+            </h1>
+
+            <p class="fecha-agenda-texto">
+                Fecha seleccionada: {{ fecha_seleccionada }}
+            </p>
+        </div>
 
         <a href="/admin" class="btn-gold">
             Volver al panel
@@ -16,20 +22,43 @@
 
     </div>
 
+    <form method="GET" action="/agenda" class="form-fecha-agenda">
+
+        <label>
+            Seleccionar fecha
+        </label>
+
+        <div class="fecha-row">
+
+            <input
+                type="date"
+                name="fecha"
+                value="{{ fecha_seleccionada }}"
+                class="input-fecha-agenda"
+                required
+            >
+
+            <button type="submit" class="btn-gold">
+                Ver agenda
+            </button>
+
+        </div>
+
+    </form>
+
     <div class="agenda-grid">
 
-        {% for hora in [
-            "10:00","10:30",
-            "11:00","11:30",
-            "12:00","12:30",
-            "13:00","13:30",
-            "14:00","14:30",
-            "15:00","15:30",
-            "16:00","16:30",
-            "17:00","17:30",
-            "18:00","18:30",
-            "19:00"
-        ] %}
+        {% for hora in horarios %}
+
+            {% set ns = namespace(cita_encontrada=None) %}
+
+            {% for cita in citas %}
+
+                {% if cita.hora == hora %}
+                    {% set ns.cita_encontrada = cita %}
+                {% endif %}
+
+            {% endfor %}
 
             <div class="bloque-hora">
 
@@ -39,35 +68,25 @@
 
                 <div class="contenido-hora">
 
-                    {% set encontrada = false %}
+                    {% if ns.cita_encontrada %}
 
-                    {% for cita in citas %}
+                        <div class="cita-card">
 
-                        {% if cita.hora == hora %}
+                            <h3>
+                                {{ ns.cita_encontrada.cliente }}
+                            </h3>
 
-                            {% set encontrada = true %}
+                            <p>
+                                {{ ns.cita_encontrada.servicio }}
+                            </p>
 
-                            <div class="cita-card">
+                            <span>
+                                Tel: {{ ns.cita_encontrada.telefono }}
+                            </span>
 
-                                <h3>
-                                    {{ cita.cliente }}
-                                </h3>
+                        </div>
 
-                                <p>
-                                    {{ cita.servicio }}
-                                </p>
-
-                                <span>
-                                    {{ cita.fecha }}
-                                </span>
-
-                            </div>
-
-                        {% endif %}
-
-                    {% endfor %}
-
-                    {% if not encontrada %}
+                    {% else %}
 
                         <div class="libre">
                             Disponible

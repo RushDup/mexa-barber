@@ -373,19 +373,30 @@ Te esperamos 🔥
 @app.route("/agenda")
 @login_required
 def agenda():
+    fecha_seleccionada = request.args.get("fecha")
+
+    if not fecha_seleccionada:
+        fecha_seleccionada = datetime.now().strftime("%Y-%m-%d")
+
     conn = conectar()
     cursor = conn.cursor()
 
     cursor.execute("""
         SELECT * FROM citas
         WHERE estado = 'aceptada'
-        ORDER BY fecha ASC, hora ASC
-    """)
+        AND fecha = ?
+        ORDER BY hora ASC
+    """, (fecha_seleccionada,))
 
     citas = cursor.fetchall()
     conn.close()
 
-    return render_template("agenda.html", citas=citas)
+    return render_template(
+        "agenda.html",
+        citas=citas,
+        horarios=HORARIOS,
+        fecha_seleccionada=fecha_seleccionada
+    )
 
 
 if __name__ == "__main__":
