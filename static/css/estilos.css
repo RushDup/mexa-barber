@@ -662,3 +662,201 @@ RESPONSIVE
         width:100%;
     }
 }
+
+/* =========================
+AGENDA PRO FULLCALENDAR
+========================= */
+
+.agenda-pro-page{
+    width:90%;
+    margin:auto;
+    padding:50px 0;
+}
+
+.agenda-pro-header{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    margin-bottom:25px;
+    gap:20px;
+    flex-wrap:wrap;
+}
+
+.agenda-pro-header h1{
+    color:#d4a85f;
+    font-size:50px;
+    margin-bottom:8px;
+}
+
+.agenda-pro-header p{
+    color:#aaa;
+    font-size:18px;
+}
+
+.leyenda-agenda{
+    display:flex;
+    gap:25px;
+    flex-wrap:wrap;
+    margin-bottom:25px;
+    color:#ddd;
+}
+
+.leyenda-agenda div{
+    display:flex;
+    align-items:center;
+    gap:8px;
+}
+
+.dot{
+    width:14px;
+    height:14px;
+    border-radius:50%;
+    display:inline-block;
+}
+
+.dot-pendiente{
+    background:#d4a85f;
+}
+
+.dot-aceptada{
+    background:#16a34a;
+}
+
+.calendar-card{
+    background:#151515;
+    padding:25px;
+    border-radius:25px;
+    box-shadow:0 0 30px rgba(0,0,0,.5);
+}
+
+/* FullCalendar oscuro */
+
+.fc{
+    color:white;
+}
+
+.fc .fc-toolbar-title{
+    color:#d4a85f;
+    font-weight:bold;
+}
+
+.fc .fc-button{
+    background:#d4a85f !important;
+    border:none !important;
+    color:black !important;
+    font-weight:bold !important;
+    border-radius:8px !important;
+}
+
+.fc .fc-button:hover{
+    opacity:.85;
+}
+
+.fc .fc-daygrid-day{
+    background:#101010;
+}
+
+.fc .fc-col-header-cell{
+    background:#1f1f1f;
+}
+
+.fc .fc-daygrid-day-number{
+    color:white;
+    text-decoration:none;
+}
+
+.fc .fc-col-header-cell-cushion{
+    color:#d4a85f;
+    text-decoration:none;
+}
+
+.fc .fc-event{
+    border-radius:8px;
+    padding:3px 6px;
+    font-size:13px;
+    cursor:pointer;
+}
+
+.fc .fc-day-today{
+    background:rgba(212,168,95,.15) !important;
+}
+
+/* Modal cita */
+
+.modal-cita{
+    position:fixed;
+    inset:0;
+    background:rgba(0,0,0,.75);
+    display:none;
+    justify-content:center;
+    align-items:center;
+    z-index:9999;
+    padding:20px;
+}
+
+.mostrar-modal{
+    display:flex;
+}
+
+.modal-cita-card{
+    width:100%;
+    max-width:450px;
+    background:#151515;
+    border-radius:25px;
+    padding:35px;
+    position:relative;
+    box-shadow:0 0 35px rgba(0,0,0,.7);
+}
+
+.cerrar-modal{
+    position:absolute;
+    top:15px;
+    right:20px;
+    background:none;
+    border:none;
+    color:white;
+    font-size:35px;
+    cursor:pointer;
+}
+
+.modal-cita-card h2{
+    color:#d4a85f;
+    margin-bottom:20px;
+}
+
+.modal-cita-card p{
+    color:#ddd;
+    margin-bottom:10px;
+}
+
+.modal-actions{
+    display:flex;
+    gap:10px;
+    flex-wrap:wrap;
+    margin-top:25px;
+}
+
+@media(max-width:768px){
+
+    .agenda-pro-header h1{
+        font-size:35px;
+    }
+
+    .calendar-card{
+        padding:15px;
+    }
+
+    .fc .fc-toolbar{
+        flex-direction:column;
+        gap:10px;
+    }
+
+    .fc .fc-toolbar-title{
+        font-size:22px;
+    }
+
+    .fc .fc-event{
+        font-size:11px;
+    }
+
+}

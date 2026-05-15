@@ -2,18 +2,13 @@
 
 {% block contenido %}
 
-<div class="agenda-page">
+<div class="agenda-pro-page">
 
-    <div class="agenda-header">
+    <div class="agenda-pro-header">
 
         <div>
-            <h1>
-                Agenda del día
-            </h1>
-
-            <p class="fecha-agenda-texto">
-                Fecha seleccionada: {{ fecha_seleccionada }}
-            </p>
+            <h1>Agenda profesional</h1>
+            <p>Visualiza las citas por mes, semana o día.</p>
         </div>
 
         <a href="/admin" class="btn-gold">
@@ -22,86 +17,133 @@
 
     </div>
 
-    <form method="GET" action="/agenda" class="form-fecha-agenda">
+    <div class="leyenda-agenda">
 
-        <label>
-            Seleccionar fecha
-        </label>
-
-        <div class="fecha-row">
-
-            <input
-                type="date"
-                name="fecha"
-                value="{{ fecha_seleccionada }}"
-                class="input-fecha-agenda"
-                required
-            >
-
-            <button type="submit" class="btn-gold">
-                Ver agenda
-            </button>
-
+        <div>
+            <span class="dot dot-pendiente"></span>
+            Pendiente
         </div>
 
-    </form>
+        <div>
+            <span class="dot dot-aceptada"></span>
+            Aceptada
+        </div>
 
-    <div class="agenda-grid">
+    </div>
 
-        {% for hora in horarios %}
+    <div class="calendar-card">
 
-            {% set ns = namespace(cita_encontrada=None) %}
-
-            {% for cita in citas %}
-
-                {% if cita.hora == hora %}
-                    {% set ns.cita_encontrada = cita %}
-                {% endif %}
-
-            {% endfor %}
-
-            <div class="bloque-hora">
-
-                <div class="hora-label">
-                    {{ hora }}
-                </div>
-
-                <div class="contenido-hora">
-
-                    {% if ns.cita_encontrada %}
-
-                        <div class="cita-card">
-
-                            <h3>
-                                {{ ns.cita_encontrada.cliente }}
-                            </h3>
-
-                            <p>
-                                {{ ns.cita_encontrada.servicio }}
-                            </p>
-
-                            <span>
-                                Tel: {{ ns.cita_encontrada.telefono }}
-                            </span>
-
-                        </div>
-
-                    {% else %}
-
-                        <div class="libre">
-                            Disponible
-                        </div>
-
-                    {% endif %}
-
-                </div>
-
-            </div>
-
-        {% endfor %}
+        <div id="calendar"></div>
 
     </div>
 
 </div>
+
+<div id="modalCita" class="modal-cita">
+
+    <div class="modal-cita-card">
+
+        <button id="cerrarModal" class="cerrar-modal">
+            ×
+        </button>
+
+        <h2 id="modalCliente"></h2>
+
+        <p id="modalServicio"></p>
+        <p id="modalFecha"></p>
+        <p id="modalHora"></p>
+        <p id="modalTelefono"></p>
+        <p id="modalEstado"></p>
+
+        <div class="modal-actions">
+
+            <a id="modalReagendar" href="#" class="btn-gold">
+                Reagendar
+            </a>
+
+            <a id="modalCancelar" href="#" class="btn-cancelar">
+                Cancelar
+            </a>
+
+        </div>
+
+    </div>
+
+</div>
+
+<link href="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.15/index.global.min.css" rel="stylesheet">
+
+<script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.15/index.global.min.js"></script>
+
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+
+        const calendarEl = document.getElementById("calendar");
+
+        const modal = document.getElementById("modalCita");
+        const cerrarModal = document.getElementById("cerrarModal");
+
+        const modalCliente = document.getElementById("modalCliente");
+        const modalServicio = document.getElementById("modalServicio");
+        const modalFecha = document.getElementById("modalFecha");
+        const modalHora = document.getElementById("modalHora");
+        const modalTelefono = document.getElementById("modalTelefono");
+        const modalEstado = document.getElementById("modalEstado");
+
+        const modalReagendar = document.getElementById("modalReagendar");
+        const modalCancelar = document.getElementById("modalCancelar");
+
+        const calendar = new FullCalendar.Calendar(calendarEl, {
+            initialView: "dayGridMonth",
+            locale: "es",
+            height: "auto",
+
+            headerToolbar: {
+                left: "prev,next today",
+                center: "title",
+                right: "dayGridMonth,timeGridWeek,timeGridDay,listWeek"
+            },
+
+            buttonText: {
+                today: "Hoy",
+                month: "Mes",
+                week: "Semana",
+                day: "Día",
+                list: "Lista"
+            },
+
+            events: "/api/citas",
+
+            eventClick: function(info) {
+                const cita = info.event.extendedProps;
+
+                modalCliente.textContent = cita.cliente;
+                modalServicio.textContent = "Servicio: " + cita.servicio;
+                modalFecha.textContent = "Fecha: " + cita.fecha;
+                modalHora.textContent = "Hora: " + cita.hora;
+                modalTelefono.textContent = "Teléfono: " + cita.telefono;
+                modalEstado.textContent = "Estado: " + cita.estado;
+
+                modalReagendar.href = "/reagendar/" + info.event.id;
+                modalCancelar.href = "/cancelar/" + info.event.id;
+
+                modal.classList.add("mostrar-modal");
+            }
+        });
+
+        calendar.render();
+
+        cerrarModal.addEventListener("click", function () {
+            modal.classList.remove("mostrar-modal");
+        });
+
+        modal.addEventListener("click", function (e) {
+            if (e.target === modal) {
+                modal.classList.remove("mostrar-modal");
+            }
+        });
+
+    });
+</script>
 
 {% endblock %}

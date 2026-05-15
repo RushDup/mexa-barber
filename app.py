@@ -373,30 +373,51 @@ Te esperamos 🔥
 @app.route("/agenda")
 @login_required
 def agenda():
-    fecha_seleccionada = request.args.get("fecha")
+    return render_template("agenda.html")
 
-    if not fecha_seleccionada:
-        fecha_seleccionada = datetime.now().strftime("%Y-%m-%d")
 
+@app.route("/api/citas")
+@login_required
+def api_citas():
     conn = conectar()
     cursor = conn.cursor()
 
     cursor.execute("""
         SELECT * FROM citas
-        WHERE estado = 'aceptada'
-        AND fecha = ?
-        ORDER BY hora ASC
-    """, (fecha_seleccionada,))
+        WHERE estado != 'cancelada'
+        ORDER BY fecha ASC, hora ASC
+    """)
 
     citas = cursor.fetchall()
     conn.close()
 
-    return render_template(
-        "agenda.html",
-        citas=citas,
-        horarios=HORARIOS,
-        fecha_seleccionada=fecha_seleccionada
-    )
+    eventos = []
+
+    for cita in citas:
+        if cita["estado"] == "aceptada":
+            color = "#16a34a"
+        elif cita["estado"] == "pendiente":
+            color = "#d4a85f"
+        else:
+            color = "#ef4444"
+
+        eventos.append({
+            "id": cita["id"],
+            "title": f"{cita['hora']} - {cita['cliente']} ({cita['servicio']})",
+            "start": f"{cita['fecha']}T{cita['hora']}:00",
+            "backgroundColor": color,
+            "borderColor": color,
+            "extendedProps": {
+                "cliente": cita["cliente"],
+                "telefono": cita["telefono"],
+                "servicio": cita["servicio"],
+                "fecha": cita["fecha"],
+                "hora": cita["hora"],
+                "estado": cita["estado"]
+            }
+        })
+
+    return jsonify(eventos)
 
 
 if __name__ == "__main__":
